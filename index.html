@@ -1,198 +1,268 @@
-
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b0d0c">
-<title>TradeLog — Trading Journal</title>
+<title>TradeLog</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{color-scheme:dark;--bg:#0b0d0c;--panel:#141816;--line:#29312c;--muted:#9aa59e;--green:#4ade80;--red:#fb7185}
+:root{color-scheme:dark;--bg:#090b0e;--card:#12161c;--line:#252c35;--text:#edf2f7;--muted:#8d98a7;--green:#28d17c;--red:#ff5968}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#f3f5f4;font:14px -apple-system,BlinkMacSystemFont,sans-serif}
-main{max-width:900px;margin:auto;padding:20px 14px 40px}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
-h1{font-size:25px;margin:0}h2{font-size:17px;margin:0 0 15px}
-.sub,.muted{color:var(--muted);font-size:12px}
-.logo{color:var(--green)}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:15px}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:15px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
-.stat strong{display:block;font-size:21px;margin-top:8px;overflow-wrap:anywhere}
+body{margin:0;background:var(--bg);color:var(--text);font:15px Arial,sans-serif}
+main{max-width:1050px;margin:auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+h1{margin:0;font-size:27px}h1 span{color:var(--green)}
+h2{font-size:17px;margin:0 0 16px}
+.small{font-size:12px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:17px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#0c1015;border:1px solid var(--line);padding:13px;border-radius:10px;min-width:0}
+.stat b{display:block;font-size:20px;margin-top:9px;overflow-wrap:anywhere}
 .green{color:var(--green)}.red{color:var(--red)}
-.month{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-button,select,input,textarea{font:inherit}
-button{cursor:pointer;background:#243229;color:#e9fff0;border:1px solid #354b3c;border-radius:9px;padding:10px 12px}
-button:active{opacity:.7}.arrow{font-size:18px;padding:5px 12px}
+form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+label{display:block;color:var(--muted);font-size:12px}
+input,select,textarea{display:block;width:100%;margin-top:6px;background:#090d12;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:11px;font:inherit;min-width:0}
+textarea{resize:vertical;min-height:70px}
+button{background:var(--green);color:#04130a;border:0;border-radius:8px;padding:11px 14px;font-weight:bold;cursor:pointer}
+button.secondary{background:#242c36;color:var(--text)}
+button.danger{background:#3a171c;color:#ffb6be}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.wide{grid-column:1/-1}
+#auth{max-width:460px;margin:35px auto}
+#message{margin:12px 0;color:#f3ca75;overflow-wrap:anywhere}
+.calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
 .calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
-.weekday{text-align:center;color:var(--muted);font-size:11px;padding:6px 0}
-.day{min-height:64px;padding:5px 3px;background:#1b211d;border:1px solid transparent;border-radius:7px;overflow:hidden}
-.day.today{border-color:#7cdb9b}.day.selected{outline:1px solid #d4f8df}
-.daynum{font-size:11px}.daypl{font-size:10px;font-weight:700;margin-top:8px;overflow-wrap:anywhere}
-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.field{display:flex;flex-direction:column;gap:6px;min-width:0}
-.field.full{grid-column:1/-1}
-label{font-size:12px;color:var(--muted)}
-input,select,textarea{width:100%;min-width:0;background:#0c100d;border:1px solid var(--line);border-radius:8px;padding:11px;color:#f3f5f4}
-textarea{resize:vertical} .primary{background:var(--green);color:#07130a;border:0;font-weight:700}
-.trade{border-top:1px solid var(--line);padding:12px 0;display:flex;justify-content:space-between;gap:10px}
-.trade:first-child{border-top:0}.trade p{margin:5px 0 0;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
-.delete{padding:5px 8px;background:transparent;color:var(--red);border-color:#56303a;align-self:center}
-.notice{font-size:12px;color:var(--muted);line-height:1.6}
-@media(min-width:600px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}.day{min-height:78px;padding:8px}.daypl{font-size:12px}}
+.dayname{text-align:center;color:var(--muted);font-size:11px;padding:5px 0}
+.day{background:#0b0f14;border:1px solid var(--line);border-radius:7px;min-height:65px;padding:6px 3px;text-align:center;overflow-wrap:anywhere}
+.day .num{font-size:12px}.day .pnl{font-size:11px;margin-top:8px;font-weight:bold}
+.day.profit{border-color:#176d46}.day.loss{border-color:#792c36}
+.history{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:normal}
+@media(max-width:600px){main{padding:12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}form{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:23px}.card{padding:12px}.day{min-height:57px;padding:5px 1px}.day .pnl{font-size:10px}}
 </style>
 </head>
 <body>
 <main>
 <header>
-  <div><h1><span class="logo">Trade</span>Log</h1><div class="sub">PERSONAL TRADING JOURNAL</div></div>
-  <span class="logo">● USD</span>
+  <div><h1>Trade<span>Log</span></h1><div class="small">Your trading journal</div></div>
+  <div class="actions"><span id="who" class="small"></span><button id="logout" class="secondary" hidden>Keluar</button></div>
 </header>
 
-<section class="stats">
-  <div class="stat"><span class="muted">Net P/L</span><strong id="net">$0.00</strong></div>
-  <div class="stat"><span class="muted">Win rate</span><strong id="winrate">0%</strong></div>
-  <div class="stat"><span class="muted">Total trades</span><strong id="total">0</strong></div>
-  <div class="stat"><span class="muted">Hari trading</span><strong id="days">0</strong></div>
-</section>
-
-<section class="panel">
-  <div class="month">
-    <button class="arrow" id="prev" aria-label="Bulan sebelumnya">‹</button>
-    <div style="text-align:center"><h2 id="monthTitle" style="margin:0">Kalender</h2><div class="sub">Profit / loss harian</div></div>
-    <button class="arrow" id="next" aria-label="Bulan berikutnya">›</button>
-  </div>
-  <div class="calendar" id="calendar"></div>
-  <p class="notice">Hijau = profit · Merah = loss. Pilih tanggal untuk melihat hasil hari tersebut.</p>
-</section>
-
-<section class="panel">
-  <h2 id="formTitle">Catat trade</h2>
-  <form id="tradeForm">
-    <div class="field"><label for="date">Tanggal</label><input id="date" type="date" required></div>
-    <div class="field"><label for="symbol">Instrumen</label><select id="symbol"><option>XAUUSD</option><option>NAS100</option><option>EURUSD</option><option>GBPUSD</option><option>BTCUSD</option><option>Lainnya</option></select></div>
-    <div class="field"><label for="side">Posisi</label><select id="side"><option>BUY</option><option>SELL</option></select></div>
-    <div class="field"><label for="result">Hasil trade (USD)</label><input id="result" type="number" step="0.01" placeholder="Contoh: 25 atau -10" required></div>
-    <div class="field"><label for="entry">Harga entry (opsional)</label><input id="entry" type="number" step="any" placeholder="0.00"></div>
-    <div class="field"><label for="exit">Harga exit (opsional)</label><input id="exit" type="number" step="any" placeholder="0.00"></div>
-    <div class="field"><label for="lot">Lot (opsional)</label><input id="lot" type="number" step="any" min="0" placeholder="0.01"></div>
-    <div class="field"><label for="setup">Setup (opsional)</label><input id="setup" placeholder="Contoh: sweep + BOS"></div>
-    <div class="field full"><label for="notes">Catatan / evaluasi</label><textarea id="notes" rows="3" placeholder="Mengapa entry? Apa yang bisa diperbaiki?"></textarea></div>
-    <div class="field full"><button class="primary" id="saveBtn" type="submit">+ Simpan trade</button><button id="cancelEdit" type="button" hidden>Batal edit</button></div>
+<section id="auth" class="card">
+  <h2>Masuk ke TradeLog</h2>
+  <p class="small">Gunakan akun email yang sudah kamu buat di Supabase.</p>
+  <form id="authForm">
+    <label class="wide">Email<input id="email" type="email" required autocomplete="email"></label>
+    <label class="wide">Password<input id="password" type="password" required autocomplete="current-password"></label>
+    <button class="wide" type="submit">Masuk</button>
   </form>
+  <div id="message" role="status"></div>
 </section>
 
-<section class="panel">
-  <h2 id="listTitle">Riwayat trade</h2>
-  <div id="tradeList" class="muted">Belum ada trade. Tambahkan catatan pertamamu.</div>
+<section id="app" hidden>
+  <div class="stats card">
+    <div class="stat"><span class="small">Total Net P/L</span><b id="total">$0.00</b></div>
+    <div class="stat"><span class="small">Win Rate</span><b id="winrate">0%</b></div>
+    <div class="stat"><span class="small">Total Trades</span><b id="count">0</b></div>
+  </div>
+
+  <section class="card">
+    <h2>Tambah jurnal trade</h2>
+    <form id="tradeForm">
+      <label>Tanggal<input id="date" type="date" required></label>
+      <label>Pair
+        <select id="symbol"><option>XAUUSD</option><option>NAS100</option><option>EURUSD</option><option>GBPUSD</option><option>BTCUSD</option><option>OTHER</option></select>
+      </label>
+      <label>Posisi<select id="side"><option>BUY</option><option>SELL</option></select></label>
+      <label>Profit / Loss (USD)<input id="pnl" type="number" step="0.01" required placeholder="Contoh: 25 atau -10"></label>
+      <label>Entry<input id="entry" type="number" step="any"></label>
+      <label>Exit<input id="exit" type="number" step="any"></label>
+      <label>Lot<input id="lot" type="number" step="any" min="0"></label>
+      <label>Setup<input id="setup" placeholder="Contoh: Breakout"></label>
+      <label class="wide">Catatan<textarea id="notes" placeholder="Alasan entry, emosi, evaluasi..."></textarea></label>
+      <div class="wide actions"><button type="submit" id="save">Simpan trade</button><span class="small">Data disimpan online di akunmu.</span></div>
+    </form>
+    <div id="appMessage" role="status"></div>
+  </section>
+
+  <section class="card">
+    <div class="calendar-head">
+      <button id="prev" class="secondary" type="button">←</button>
+      <h2 id="month" style="margin:0"></h2>
+      <button id="next" class="secondary" type="button">→</button>
+    </div>
+    <div id="calendar" class="calendar"></div>
+  </section>
+
+  <section class="card">
+    <h2>Riwayat trade</h2>
+    <div class="history"><table>
+      <thead><tr><th>Tanggal</th><th>Pair</th><th>Posisi</th><th>P/L</th><th>Catatan</th><th>Aksi</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <p class="small">Hapus hanya trade yang memang ingin kamu hapus.</p>
+  </section>
 </section>
-<p class="notice">Versi awal TradeLog menyimpan data di penyimpanan browser perangkat ini. Data belum tersinkron ke akun online. Jangan gunakan sebagai satu-satunya salinan jurnal penting.</p>
 </main>
 
 <script>
-const $=id=>document.getElementById(id);
-const STORAGE_KEY='tradelog-v1';
-let trades=[];
-try{trades=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');if(!Array.isArray(trades))trades=[]}catch(e){trades=[]}
-let chosenDate=localDate();
-let viewDate=new Date();
-let editingId=null;
+(() => {
+  // GANTI DUA NILAI DI BAWAH INI DENGAN MILIKMU.
+  const SUPABASE_URL = "https://igoisdvcphtyaniynkge.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "TEMPEL_PUBLISHABLE_KEY_KAMU_DI_SINI";
 
-function localDate(){
- const d=new Date();
- return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function money(n){
- return (n<0?'−':' +').trim()+'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function save(){
- try{localStorage.setItem(STORAGE_KEY,JSON.stringify(trades));return true}
- catch(e){alert('Penyimpanan browser gagal. Data belum tersimpan.');return false}
-}
-function monthKey(date){return date.slice(0,7)}
-function dayTotal(date){return trades.filter(t=>t.date===date).reduce((s,t)=>s+Number(t.result),0)}
-function renderStats(){
- const net=trades.reduce((s,t)=>s+Number(t.result),0);
- const wins=trades.filter(t=>Number(t.result)>0).length;
- const losses=trades.filter(t=>Number(t.result)<0).length;
- const active=new Set(trades.map(t=>t.date)).size;
- $('net').textContent=money(net);
- $('net').className=net>0?'green':net<0?'red':'';
- $('winrate').textContent=(wins+losses?Math.round(wins/(wins+losses)*100):0)+'%';
- $('total').textContent=trades.length;
- $('days').textContent=active;
-}
-function renderCalendar(){
- const y=viewDate.getFullYear(),m=viewDate.getMonth();
- $('monthTitle').textContent=new Intl.DateTimeFormat('id-ID',{month:'long',year:'numeric'}).format(viewDate);
- const first=new Date(y,m,1).getDay(),count=new Date(y,m+1,0).getDate();
- const cal=$('calendar');cal.innerHTML='';
- ['Min','Sen','Sel','Rab','Kam','Jum','Sab'].forEach(d=>{
-  const el=document.createElement('div');el.className='weekday';el.textContent=d;cal.append(el);
- });
- for(let i=0;i<first;i++){const e=document.createElement('div');cal.append(e)}
- for(let d=1;d<=count;d++){
-  const date=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  const sum=dayTotal(date),has=trades.some(t=>t.date===date);
-  const el=document.createElement('button');
-  el.type='button';el.className='day'+(date===localDate()?' today':'')+(date===chosenDate?' selected':'');
-  el.style.textAlign='left';el.style.color='#f3f5f4';
-  const num=document.createElement('div');num.className='daynum';num.textContent=d;el.append(num);
-  if(has){const p=document.createElement('div');p.className='daypl '+(sum>=0?'green':'red');p.textContent=(sum>0?'+':sum<0?'−':'')+'$'+Math.abs(sum).toFixed(0);el.append(p)}
-  el.addEventListener('click',()=>{chosenDate=date;$('date').value=date;renderCalendar();renderList()});
-  cal.append(el);
- }
-}
-function renderList(){
- const filtered=trades.filter(t=>t.date===chosenDate).sort((a,b)=>b.created-a.created);
- $('listTitle').textContent='Trade tanggal '+chosenDate;
- const list=$('tradeList');list.innerHTML='';
- if(!filtered.length){list.textContent='Belum ada trade pada tanggal ini.';list.className='muted';return}
- list.className='';
- filtered.forEach(t=>{
-  const row=document.createElement('div');row.className='trade';
-  const info=document.createElement('div');info.style.minWidth='0';
-  const title=document.createElement('strong');title.textContent=t.symbol+' · '+t.side+' · '+money(Number(t.result));title.className=Number(t.result)>0?'green':Number(t.result)<0?'red':'';
-  const detail=document.createElement('p');
-  detail.textContent=[t.entry?'Entry '+t.entry:'',t.exit?'Exit '+t.exit:'',t.lot?'Lot '+t.lot:'',t.setup||'',t.notes||''].filter(Boolean).join(' · ')||'Tanpa catatan';
-  info.append(title,detail);
-  const actions=document.createElement('div');actions.style.display='flex';actions.style.gap='5px';
-  const edit=document.createElement('button');edit.textContent='Edit';edit.type='button';edit.onclick=()=>editTrade(t);
-  const del=document.createElement('button');del.textContent='×';del.type='button';del.className='delete';del.onclick=()=>{
-   if(confirm('Hapus catatan trade ini?')){trades=trades.filter(x=>x.id!==t.id);if(save()){renderAll()}}
-  };
-  actions.append(edit,del);row.append(info,actions);list.append(row);
- });
-}
-function resetForm(){
- editingId=null;$('tradeForm').reset();$('date').value=chosenDate;
- $('formTitle').textContent='Catat trade';$('saveBtn').textContent='+ Simpan trade';$('cancelEdit').hidden=true;
-}
-function editTrade(t){
- editingId=t.id;
- ['date','symbol','side','result','entry','exit','lot','setup','notes'].forEach(k=>$(k).value=t[k]??'');
- chosenDate=t.date;
- $('formTitle').textContent='Edit trade';$('saveBtn').textContent='Simpan perubahan';$('cancelEdit').hidden=false;
- renderCalendar();renderList();$('formTitle').scrollIntoView({behavior:'smooth',block:'start'});
-}
-$('tradeForm').addEventListener('submit',e=>{
- e.preventDefault();
- const t={
-  id:editingId||String(Date.now())+Math.random().toString(16).slice(2),
-  created:editingId?(trades.find(x=>x.id===editingId)?.created||Date.now()):Date.now(),
-  date:$('date').value,symbol:$('symbol').value,side:$('side').value,
-  result:Number($('result').value),entry:$('entry').value,exit:$('exit').value,
-  lot:$('lot').value,setup:$('setup').value.trim(),notes:$('notes').value.trim()
- };
- if(!t.date||!Number.isFinite(t.result)){alert('Periksa tanggal dan hasil trade.');return}
- if(editingId)trades=trades.map(x=>x.id===editingId?t:x);else trades.push(t);
- if(save()){chosenDate=t.date;viewDate=new Date(t.date+'T12:00:00');resetForm();renderAll()}
-});
-$('cancelEdit').addEventListener('click',resetForm);
-$('prev').onclick=()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1);renderCalendar()};
-$('next').onclick=()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+1,1);renderCalendar()};
-$('date').value=chosenDate;
-function renderAll(){renderStats();renderCalendar();renderList()}
-renderAll();
+  const $ = id => document.getElementById(id);
+  const money = n => (n < 0 ? "-$" : "$") + Math.abs(Number(n)).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const today = new Date();
+  $("date").value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+
+  if (!window.supabase) {
+    $("message").textContent = "Library Supabase gagal dimuat. Periksa koneksi internet lalu refresh.";
+    return;
+  }
+  if (SUPABASE_PUBLISHABLE_KEY === "TEMPEL_PUBLISHABLE_KEY_KAMU_DI_SINI") {
+    $("message").textContent = "Isi publishable key Supabase di kode sebelum login.";
+    return;
+  }
+
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  let trades = [];
+  let monthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+  let busy = false;
+
+  function say(text, app=false) {
+    $(app ? "appMessage" : "message").textContent = text;
+  }
+  function setBusy(value) {
+    busy = value;
+    $("save").disabled = value;
+  }
+  async function loadTrades() {
+    const {data,error} = await db.from("trades").select("*").order("trade_date",{ascending:false}).order("created_at",{ascending:false});
+    if (error) throw error;
+    trades = data || [];
+    render();
+  }
+  function render() {
+    const total = trades.reduce((sum,t) => sum + Number(t.profit_loss || 0),0);
+    const wins = trades.filter(t => Number(t.profit_loss) > 0).length;
+    $("total").textContent = money(total);
+    $("total").className = total >= 0 ? "green" : "red";
+    $("winrate").textContent = `${trades.length ? Math.round(wins/trades.length*100) : 0}%`;
+    $("count").textContent = trades.length;
+
+    const year = monthDate.getFullYear(), month = monthDate.getMonth();
+    $("month").textContent = monthDate.toLocaleDateString("id-ID",{month:"long",year:"numeric"});
+    const first = new Date(year,month,1).getDay();
+    const days = new Date(year,month+1,0).getDate();
+    const names = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
+    // Kalender dimulai Minggu agar sesuai urutan hari Indonesia.
+    let html = names.map(n=>`<div class="dayname">${n}</div>`).join("");
+    for(let i=0;i<first;i++) html += `<div></div>`;
+    for(let d=1;d<=days;d++){
+      const key = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      const sum = trades.filter(t=>t.trade_date===key).reduce((s,t)=>s+Number(t.profit_loss||0),0);
+      const has = trades.some(t=>t.trade_date===key);
+      const cls = has ? (sum>=0?"profit":"loss") : "";
+      html += `<div class="day ${cls}"><div class="num">${d}</div>${has?`<div class="pnl ${sum>=0?"green":"red"}">${money(sum)}</div>`:""}</div>`;
+    }
+    $("calendar").innerHTML = html;
+
+    $("rows").innerHTML = trades.map(t => `<tr>
+      <td>${escapeHtml(t.trade_date || "")}</td>
+      <td>${escapeHtml(t.symbol || "")}</td>
+      <td>${escapeHtml(t.side || "")}</td>
+      <td class="${Number(t.profit_loss)>=0?"green":"red"}">${money(t.profit_loss)}</td>
+      <td>${escapeHtml(t.notes || t.setup || "-")}</td>
+      <td><button class="danger" data-delete="${t.id}" type="button">Hapus</button></td>
+    </tr>`).join("") || `<tr><td colspan="6" class="small">Belum ada trade.</td></tr>`;
+  }
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+  async function updateSession(session) {
+    $("auth").hidden = !!session;
+    $("app").hidden = !session;
+    $("logout").hidden = !session;
+    $("who").textContent = session?.user?.email || "";
+    if(session) {
+      try { await loadTrades(); say(""); }
+      catch(e) { say("Gagal memuat jurnal: "+e.message,true); }
+    }
+  }
+
+  $("authForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    say("Sedang masuk...");
+    const {data,error} = await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+    if(error) { say("Login gagal: "+error.message); return; }
+    await updateSession(data.session);
+  });
+  $("logout").addEventListener("click",async()=>{
+    const {error} = await db.auth.signOut();
+    if(error) say(error.message,true);
+    else {trades=[]; render(); await updateSession(null);}
+  });
+  $("tradeForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    if(busy) return;
+    setBusy(true);
+    try {
+      const {data:{user},error:userError} = await db.auth.getUser();
+      if(userError || !user) throw new Error("Sesi login tidak ditemukan. Silakan login kembali.");
+      const record = {
+        user_id:user.id,
+        trade_date:$("date").value,
+        symbol:$("symbol").value,
+        side:$("side").value,
+        profit_loss:Number($("pnl").value),
+        entry_price:$("entry").value ? Number($("entry").value) : null,
+        exit_price:$("exit").value ? Number($("exit").value) : null,
+        lot_size:$("lot").value ? Number($("lot").value) : null,
+        setup:$("setup").value.trim() || null,
+        notes:$("notes").value.trim() || null
+      };
+      const {error} = await db.from("trades").insert(record);
+      if(error) throw error;
+      $("tradeForm").reset();
+      $("date").value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+      say("Trade berhasil disimpan online.",true);
+      await loadTrades();
+    } catch(e) { say("Gagal menyimpan: "+e.message,true); }
+    finally { setBusy(false); }
+  });
+  $("rows").addEventListener("click",async e=>{
+    const button = e.target.closest("[data-delete]");
+    if(!button) return;
+    const id = button.dataset.delete;
+    if(!confirm("Hapus trade ini?")) return;
+    const {data:{user}} = await db.auth.getUser();
+    if(!user) { say("Silakan login kembali.",true); return; }
+    const {error} = await db.from("trades").delete().eq("id",id).eq("user_id",user.id);
+    if(error) say("Gagal menghapus: "+error.message,true);
+    else {say("Trade dihapus.",true); await loadTrades().catch(err=>say(err.message,true));}
+  });
+  $("prev").addEventListener("click",()=>{monthDate=new Date(monthDate.getFullYear(),monthDate.getMonth()-1,1);render();});
+  $("next").addEventListener("click",()=>{monthDate=new Date(monthDate.getFullYear(),monthDate.getMonth()+1,1);render();});
+
+  db.auth.onAuthStateChange((event,session)=> {
+    if(event === "SIGNED_OUT") {
+      $("auth").hidden=false;$("app").hidden=true;$("logout").hidden=true;$("who").textContent="";
+    } else if(session) {
+      $("auth").hidden=true;$("app").hidden=false;$("logout").hidden=false;$("who").textContent=session.user.email || "";
+      // Hindari query async langsung di callback auth.
+      setTimeout(()=>loadTrades().catch(e=>say(e.message,true)),0);
+    }
+  });
+  db.auth.getSession().then(({data,error})=>{
+    if(error) say(error.message);
+    else updateSession(data.session);
+  });
+})();
 </script>
 </body>
 </html>
+```
